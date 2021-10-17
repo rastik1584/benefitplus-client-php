@@ -1,0 +1,908 @@
+openapi: 3.0.0
+info:
+  title: Benefit Plus payment gate API (version 2)
+  description: 'OpenAPI dokumentace k [Platební bráně Benefit Plus v2](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125646355/Dokumentace+k+nov+platebn+br+n+pro+e-shopy+v2).'
+  version: 2.1.8
+servers:
+  - url: 'https://inside.benefit-plus.eu/api_PG/v2'
+    description: Main (production) server
+  - url: 'https://benefitv3.sprinx.cz/api_PG/v2'
+    description: Internal staging server for testing
+paths:
+  '/eshops/{eshopGUID}/eshoporders':
+    post:
+      summary: |
+        Zaregistrování objednávky ze strany eshopu.
+      description: |
+        Servisní endpoint, slouží pro zaregistrování objednávky ze strany eshopu. 
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125744655/POST+api+PG+v2+eshops+eshopGUID+eshoporders)
+      parameters:
+        - $ref: '#/components/parameters/X-API-Key'
+        - $ref: '#/components/parameters/eshopGUID'
+      requestBody:
+        description: 'DTO obsahující informace o registrované objednávce. [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125646362/DTO+PGv2+Eshop+Order+Request)'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGv2_Eshop_Order_Request'
+      responses:
+        '200':
+          description: |
+            Očekávaná odpověď na validní požadavek, v těle zprávy se vrací DTO s informacemi o zaregistrované objednávce.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125875753/DTO+PGv2+Eshop+Order+Result)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGv2_Eshop_Order_Result'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /_ui/_preorder:
+    post:
+      summary: |
+        Nasimuluje vytvoření objednávky.
+      description: |
+        Nasimuluje vytvoření objednávky.
+        Endpoint nezakládá skutečnou objednávku, jen provede celý proces virtuálně, aby došlo k rozpočtu platby a ověření omezení a limitů.
+        Endpoint vrací údaje o výši doplatku a rozpad platby na peněženky.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125777448/POST+api+PG+v2+ui+preorder)
+      parameters:
+        - $ref: '#/components/parameters/X-BPCardNumber'
+        - $ref: '#/components/parameters/X-EShopID'
+        - $ref: '#/components/parameters/X-EShopOrderGUID'
+      responses:
+        '200':
+          description: |
+            Očekávaná odpověď na validní požadavek, v těle zprávy se vrací DTO s informacemi o virtuální objednávce.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125646444/DTO+PGv2+PreOrder+Result)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGv2_PreOrder_Result'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /_ui/_order:
+    post:
+      summary: |
+        Vytvoří objednávku.
+      description: |
+        Vytvoří objednávku. Vytvořená objednávka bude ve stavu New.
+        Endpoint vrací údaje o objednávce, výši doplatku a rozpad na peněženky.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125941264/POST+api+PG+v2+ui+order)
+      parameters:
+        - $ref: '#/components/parameters/X-BPCardNumber'
+        - $ref: '#/components/parameters/X-EShopID'
+        - $ref: '#/components/parameters/X-EShopOrderGUID'
+      responses:
+        '200':
+          description: |
+            Očekávaná odpověď na validní požadavek, v těle zprávy se vrací DTO s informacemi o založené objednávce.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125744704/DTO+PGv2+Order+Result)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGv2_Order_Result'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /_ui/_confirm:
+    post:
+      summary: |
+        Pokusí se již existující objednávku zaplatit.
+      description: |
+        Pokusí se již existující objednávku zaplatit, nebo alespoň posunout kupředu v platebním workflow.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125875737/POST+api+PG+v2+ui+confirm)
+      parameters:
+        - $ref: '#/components/parameters/X-ConfirmCode'
+        - $ref: '#/components/parameters/X-EShopID'
+        - $ref: '#/components/parameters/X-EShopOrderGUID'
+        - $ref: '#/components/parameters/X-Return-URL'
+      requestBody:
+        description: 'DTO obsahující informace o potvrzení objednávky. [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125449831/DTO+PGv2+Confirm+Request)'
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGv2_Confirm_Request'
+      responses:
+        '200':
+          description: |
+            Očekávaná odpověď na validní požadavek.
+            V těle zprávy se vrací DTO s výsledkem platby, pokud NENÍ třeba zvolit metodu doplatku, viz [online dokumentace.](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125941313/DTO+PGv2+Confirm+Result)
+            V těle zprávy se vrací DTO se seznamem metod doplatku, pokud JE třeba zvolit metodu doplatku, viz [online dokumentace.](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1254883345/DTO+PGv2+BalancePayment+Result)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PGv2_Confirm_Result'
+                  - $ref: '#/components/schemas/PGv2_BalancePayment_Result'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  /_ui/_newconfirmcode:
+    post:
+      summary: |
+        Zašle zákazníkovi nový potvrzovací kód (SMS zprávu) k již existující objednávce.
+      description: |
+        Zašle zákazníkovi nový potvrzovací kód (SMS zprávu) k již existující objednávce.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125810222/POST+api+PG+v2+ui+newconfirmcode)
+      parameters:
+        - $ref: '#/components/parameters/X-BPCardNumber'
+        - $ref: '#/components/parameters/X-EShopID'
+        - $ref: '#/components/parameters/X-EShopOrderGUID'
+      responses:
+        '200':
+          description: Očekávaná odpověď na validní požadavek
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  '/eshops/{eshopGUID}/eshoporders/{eshopOrderGUID}':
+    get:
+      summary: |
+        Zjištění stavu objednávky ze strany eshopu.
+      description: |
+        Servisní endpoint, slouží pro zjištění stavu objednávky ze strany eshopu.
+        Vrací informace o eshop objednávce a jednotlivých pokusech o zaplacení.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125417014/GET+api+PG+v2+eshops+eshopGUID+eshoporders+eshopOrderGUID)
+      parameters:
+        - $ref: '#/components/parameters/X-API-Key'
+        - $ref: '#/components/parameters/eshopGUID'
+        - $ref: '#/components/parameters/eshopOrderGUID'
+      responses:
+        '200':
+          description: |
+            Očekávaná odpověď na validní požadavek, v těle zprávy se vrací DTO s informacemi o objednávce a všech pokusech o platbu.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125646407/DTO+PGv2+EshopOrder+State)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGv2_EshopOrder_State'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+  '/eshops/{eshopGUID}/eshoporders/{eshopOrderGUID}/_cancel':
+    post:
+      summary: |
+        Stornování objednávky ze strany eshopu.
+      description: |
+        Servisní endpoint, slouží pro stornování objednávky ze strany eshopu.
+        Odstraní objednávku. Odstraněná objednávka bude ve stavu Canceled.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125613681/POST+api+PG+v2+eshops+eshopGUID+eshoporders+eshopOrderGUID+cancel)
+      parameters:
+        - $ref: '#/components/parameters/X-API-Key'
+        - $ref: '#/components/parameters/eshopGUID'
+        - $ref: '#/components/parameters/eshopOrderGUID'
+      requestBody:
+        description: 'DTO obsahující informace o rušené objednávce. [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125744719/DTO+PGv2+Cancel+Request)'
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PGv2_Cancel_Request'
+      responses:
+        '200':
+          description: |
+            Očekávaná odpověď na validní požadavek, v těle zprávy se vrací DTO s informacemi o provedeném stornu.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125744726/DTO+PGv2+Cancel+Result)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PGv2_Cancel_Result'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+components:
+  parameters:
+    X-API-Key:
+      name: X-API-Key
+      in: header
+      required: true
+      description: |
+        Jedinečný bezpečnostní klíč eshopu.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-API-Key)
+      schema:
+        type: string
+    X-BPCardNumber:
+      name: X-BPCardNumber
+      in: header
+      required: true
+      description: |
+        Číslo BP karty, ve formátu s pomlčkami.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-BPCardNumber)
+      schema:
+        type: string
+    X-EShopID:
+      name: X-EShopID
+      in: header
+      required: true
+      description: |
+        GUID eshopu, ze kterého je požadavek zaslán.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-EShopID)
+      schema:
+        type: string
+    X-EShopOrderGUID:
+      name: X-EShopOrderGUID
+      in: header
+      required: true
+      description: |
+        Jedinečné GUID eshop objednávky, přidělené registračním endpointem.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-EShopOrderGUID)
+      schema:
+        type: string
+    X-ConfirmCode:
+      name: X-ConfirmCode
+      in: header
+      required: true
+      description: |
+        Ověřovací kód (zaslaný pomocí SMS uživateli).
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-ConfirmCode)
+      schema:
+        type: string
+    X-Return-URL:
+      name: X-Return-URL
+      in: header
+      required: false
+      description: |
+        Url, které máme poslat na platební bránu ČSOB (při inicializaci platby na platební bráně).
+        Na tuto url vrátí platební brána ČSOB řízení, jakmile uživatel dokončí proces platby v UI platební brány ČSOB. 
+        Používá se při platbě doplatku privátní kartou na platební bráně ČSOB.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Return-URL)
+      schema:
+        type: string
+    eshopGUID:
+      name: eshopGUID
+      in: path
+      required: true
+      description: |
+        Jedinečný GUID eshopu.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#{eshopGUID})
+      schema:
+        type: string
+        format: uuid
+    eshopOrderGUID:
+      name: eshopOrderGUID
+      in: path
+      required: true
+      description: |
+        Jedinečné GUID eshop objednávky, přidělené registračním endpointem.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#{eshopOrderGUID})
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    PGv2_E_OrderState:
+      description: |
+        Enum slouží pro určení stavu objednávky.
+        Používá se textový klíč enumu (např. “New“), nikoli číselná hodnota.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125482531/Enum+PGv2+E+OrderState)
+      type: string
+      enum:
+        - Unknown
+        - Registered
+        - New
+        - Unauthorized
+        - Confirmed
+        - Closed
+        - Accounted
+        - Invalid
+        - Canceled
+        - CancelRequired
+        - Expired
+    PGv2_E_PaymentState:
+      description: |
+        Enum slouží pro určení stavu platby.
+        Používá se textový klíč enumu (např. “New“), nikoli číselná hodnota.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1186660400/Enum+PGv2+E+PaymentState)
+      type: string
+      enum:
+        - Unknown
+        - New
+        - RequiredAccountPayment
+        - RequiredCardPayment
+        - Authorized
+        - Canceled
+        - CanceledByEShop
+    PGv2_E_BalancePayment:
+      description: |
+        Enum slouží pro určení typu doplatku.
+        Zasílá se textový klíč (např. “OneClickSync“), nikoli číslo.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1214382108/Enum+PGv2+E+BalancePayment)
+      type: string
+      enum:
+        - WOBalancePayment
+        - OneClickSync
+        - PaymentGate
+    PGv2_Unit:
+      description: |
+        DTO slouží pro vrácení informací o jednotce. Typicky se používá pro vrácení informací o měně platby.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1214087177/DTO+PGv2+Unit)
+      type: object
+      properties:
+        Key:
+          description: |
+            Kód jednotky/měny, např. “CZK”. Kódy měn se uvádí dle ISO 4217.
+            Kód se nikdy nepřekládá, jde o jednoznačný textový identifikátor.
+          type: string
+        ShortCaption:
+          description: 'Lokalizovaný krátký název měny, např. “Kč“.'
+          type: string
+      required:
+        - Key
+        - ShortCaption
+    PGv2_PaymentResult:
+      description: |
+        DTO slouží pro vracení informací o jednotlivém pokusu o platbu.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125417041/DTO+PGv2+PaymentResult)
+      type: object
+      properties:
+        ResultCode:
+          description: 'Jde o klíč stavu objednávky/platby/transakce, dle enumu PGv2_E_PaymentState. Používá se textový klíč enumu (např. “New“), nikoli číselná hodnota.'
+          type: string
+        IsAuthorized:
+          description: Zda byla platba autorizována. Null = false = neautorizováno.
+          type: boolean
+        GUID:
+          description: GUID pokusu o platbu.
+          type: string
+        Currency:
+          description: 'Měna strona (je převzata z měny eshopu), vrací se klíč měny (CZK, EUR, PLN).'
+          type: string
+        IncomePrice:
+          description: Částka objednávky.
+          type: number
+        PayedPrice:
+          description: Již zaplacená částka.
+          type: number
+        Created:
+          description: Datumočas začátku pokusu o provedení platby.
+          type: string
+          format: date-time
+      required:
+        - ResultCode
+        - Currency
+    PGv2_BalanceWallet_Result:
+      description: |
+        DTO slouží pro vrácení informací o rozpadu platby na peněženky.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1185546369/DTO+PGv2+BalanceWallet+Result)
+      type: object
+      properties:
+        ID:
+          description: |
+            Interní index peněženky 1 - 12.
+            Index 12 je peněženka pro doplatek kartou.
+          type: integer
+          format: int32
+        Caption:
+          description: 'Název peněženky, lokalizovaný.'
+          type: string
+        Price:
+          description: 'Hodnota platby z peněženky. Pokud probíhá platba (výběr z účtu), hodnota bude záporná.'
+          type: number
+        Currency:
+          description: Měna platby z peněženky.
+          $ref: '#/components/schemas/PGv2_Unit'
+      required:
+        - ID
+        - Caption
+        - Price
+        - Currency
+    PGv2_BalancePaymentType_Result:
+      description: |
+        DTO slouží pro vrácení informací o možnosti doplatku.
+        Tyto informace jsou chráněny autorizací SMS kódem.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1254916099/DTO+PGv2+BalancePaymentType+Result)
+      type: object
+      properties:
+        PCNumber:
+          description: |
+            Čtyřmístný kód karty (jde o poslední čtyři čísla karty).
+            Povinné u metody OneClickSync, viz Enum PGv2_E_BalancePayment.
+          type: string
+        BalancePaymentType:
+          description: 'Kód typu metody doplatku, jde o textový klíč typu doplatku dle Enum PGv2_E_BalancePayment.'
+          type: string
+        Exp:
+          description: Datum expirace zaregistrované karty.
+          type: string
+      required:
+        - BalancePaymentType
+    PGv2_Eshop_Order_Request:
+      description: |
+        DTO slouží pro zaregistrování objednávky a k předání informací o objednávce ze strany eshopu.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125646362/DTO+PGv2+Eshop+Order+Request)
+      type: object
+      properties:
+        OrderID:
+          description: 'ID objednávky, přidělené eshopem.'
+          type: string
+        Description:
+          description: 'Popis objednávky, který v eshopu zadal uživatel.'
+          type: string
+        Price:
+          description: 'Hodnota benefitu, kterou objednáváme. Pro určení měny se použije měna eshopu.'
+          type: number
+        IsPartialPaymentAllowed:
+          description: |
+            Zda je povolena částečná platba z interních účtů.
+            Pokud parametr není zaslán, defaultem je true = povolen.
+          type: boolean
+        ReturnURL:
+          description: 'Návratová URL, na kterou se má vrátit řízení.'
+          type: string
+        DateFrom:
+          description: Datum od - první den pobytu v hotelu.
+          type: string
+          format: date-time
+        DateTo:
+          description: Datum to - poslední den pobytu v hotelu.
+          type: string
+          format: date-time
+      required:
+        - OrderID
+        - Price
+    PGv2_Eshop_Order_Result:
+      description: |
+        DTO slouží pro vrácení informací o právě zaregistrované objednávce z eshopu.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125875753/DTO+PGv2+Eshop+Order+Result)
+      type: object
+      properties:
+        EshopOrderGUID:
+          description: Jedinečný GUID zaregistrované eshop objednávky.
+          type: string
+        RedirectURL:
+          description: 'Celá redirect URL, kam má eshop uživatele přesměrovat.'
+          type: string
+      required:
+        - EshopOrderGUID
+        - RedirectURL
+    PGv2_EshopOrder_State:
+      description: |
+        DTO slouží pro vrácení informací o stavu objednávky.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125646407/DTO+PGv2+EshopOrder+State)
+      type: object
+      properties:
+        OrderID:
+          description: 'ID objednávky, přidělené eshopem.'
+          type: string
+        Description:
+          description: 'Popis objednávky, který v eshopu zadal uživatel.'
+          type: string
+        Price:
+          description: 'Hodnota benefitu, kterou objednáváme.'
+          type: number
+        IsPartialPaymentAllowed:
+          description: Zda je povolena částečná platba z interních účtů.
+          type: boolean
+        MarketplaceName:
+          description: Název obchodního místa (eshopu).
+          type: string
+        OrderState:
+          description: |
+            Stav vyřízení/zaplacení objednávky na straně backendu.
+            Klíče dle enumu Enum PGv2_E_OrderState. Používá se textový klíč enumu (např. “New“), nikoli číselná hodnota.
+          type: string
+        Created:
+          description: Datumočas založení objednávky.
+          type: string
+          format: date-time
+        DateFrom:
+          description: Datum od - první den pobytu v hotelu.
+          type: string
+          format: date-time
+        DateTo:
+          description: Datum to - poslední den pobytu v hotelu.
+          type: string
+          format: date-time
+        Currency:
+          description: Měna platby.
+          $ref: '#/components/schemas/PGv2_Unit'
+        PaymentResults:
+          description: |
+            List objektů DTO PGv2_PaymentResult s informacemi o jednotlivých pokusech o platbu.
+            List je seřazen dle času (nejnovější nahoře), tedy top(1) záznam listu obsahuje informace o aktuálním stavu.
+          type: array
+          items:
+            $ref: '#/components/schemas/PGv2_PaymentResult'
+          nullable: true
+      required:
+        - OrderID
+        - Price
+        - IsPartialPaymentAllowed
+        - MarketplaceName
+    PGv2_PreOrder_Result:
+      description: |
+        DTO slouží pro vrácení informací o virtuální objednávce, tj. vrací vyhodnocení možnosti založení objednávky.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125646444/DTO+PGv2+PreOrder+Result)
+      type: object
+      properties:
+        EshopOrderGUID:
+          description: Jedinečný GUID založené objednávky.
+          type: string
+        EshopPaymentGUID:
+          description: Jedinečný GUID pokusu o platbu.
+          type: string
+        Price:
+          description: 'Celková částka platby, přejato z objednávky.'
+          type: number
+        PCPaymentPrice:
+          description: |
+            Velikost potřebného doplatku privátní kartou.
+            Null = 0. Vrací se pouze tehdy, bude-li třeba provést doplatek privátní kartou.
+            Pokud probíhá platba (výběr z účtu), hodnota bude záporná.
+          type: number
+        MarketplaceName:
+          description: Název obchodního místa (eshopu).
+          type: string
+        Currency:
+          description: Měna platby.
+          $ref: '#/components/schemas/PGv2_Unit'
+        PCCurrency:
+          description: Měna doplatku privátní kartou. Uvedeno pouze pokud doplatek existuje.
+          $ref: '#/components/schemas/PGv2_Unit'
+        Wallets:
+          description: List rozpadu plateb na peněženky.
+          type: array
+          items:
+            $ref: '#/components/schemas/PGv2_BalanceWallet_Result'
+          nullable: true
+      required:
+        - EshopOrderGUID
+        - EshopPaymentGUID
+        - Price
+        - MarketplaceName
+        - Currency
+    PGv2_Order_Result:
+      description: |
+        DTO slouží pro vracení informací o výsledku založení objednávky (objednávka již skutečně vznikla).
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125744704/DTO+PGv2+Order+Result)
+      type: object
+      properties:
+        EshopOrderGUID:
+          description: Jedinečný GUID založené objednávky.
+          type: string
+        EshopPaymentGUID:
+          description: Jedinečný GUID pokusu o platbu.
+          type: string
+        Price:
+          description: 'Celková částka platby, přejato z objednávky.'
+          type: number
+        PCPaymentPrice:
+          description: |
+            Velikost potřebného doplatku privátní kartou.
+            Null = 0. Vrací se pouze tehdy, bude-li třeba provést doplatek privátní kartou.
+            Pokud probíhá platba (výběr z účtu), hodnota bude záporná.
+          type: number
+        MarketplaceName:
+          description: Název obchodního místa (eshopu).
+          type: string
+        SMSMobilePhone:
+          description: |
+            Číslo telefonu, na který byla poslána SMS.
+            Číslo je uvedeno ve formátu +420******123
+          type: string
+        SMSMobilePhone2:
+          description: |
+            Číslo druhého telefonu, na který byla poslána SMS.
+            Číslo je uvedeno ve formátu +420******123
+          type: string
+        Currency:
+          description: Měna platby.
+          $ref: '#/components/schemas/PGv2_Unit'
+        PCCurrency:
+          description: Měna doplatku privátní kartou. Uvedeno pouze pokud doplatek existuje.
+          $ref: '#/components/schemas/PGv2_Unit'
+        Wallets:
+          description: List rozpadu plateb na peněženky.
+          type: array
+          items:
+            $ref: '#/components/schemas/PGv2_BalanceWallet_Result'
+          nullable: true
+      required:
+        - EshopOrderGUID
+        - EshopPaymentGUID
+        - Price
+        - MarketplaceName
+        - Currency
+    PGv2_Confirm_Request:
+      description: |
+        DTO slouží pro určení platební metody při potvrzení (konfirmaci) a zaplacení objednávky.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125449831/DTO+PGv2+Confirm+Request)
+      type: object
+      properties:
+        BalancePaymentType:
+          description: |
+            Zvolený typ doplatku privátní kartou. Jde o textový klíč (např. “OneClickSync“) dle enumu PGv2_E_BalancePayment.
+            Pokud neuvedeno, jde o platbu bez doplatku ("WOBalancePayment"), nebo je typ zvoleného doplatku (zatím) neznámý.
+          type: string
+        PCNumber:
+          description: 'Čtyřmístný kód privátní karty (koncové čtyřčíslí karty), musí být uvedeno u metod doplatku “OneClickSync”.'
+          type: string
+    PGv2_Confirm_Result:
+      description: |
+        DTO slouží pro vracení informací o zaplacení objednávky.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125941313/DTO+PGv2+Confirm+Result)
+      type: object
+      properties:
+        EshopOrderGUID:
+          description: Jedinečný GUID založené objednávky.
+          type: string
+        EshopPaymentGUID:
+          description: Jedinečný GUID pokusu o platbu.
+          type: string
+        Price:
+          description: 'Celková částka platby, přejato z objednávky.'
+          type: number
+        PCPaymentPrice:
+          description: |
+            Velikost potřebného doplatku privátní kartou.
+            Null = 0. Vrací se pouze tehdy, bude-li třeba provést doplatek privátní kartou.
+            Pokud probíhá platba (výběr z účtu), hodnota bude záporná.
+          type: number
+        MarketplaceName:
+          description: Název obchodního místa (eshopu).
+          type: string
+        Currency:
+          description: Měna platby.
+          $ref: '#/components/schemas/PGv2_Unit'
+        PCCurrency:
+          description: Měna doplatku privátní kartou. Uvedeno pouze pokud doplatek existuje.
+          $ref: '#/components/schemas/PGv2_Unit'
+        Wallets:
+          description: List rozpadu plateb na peněženky.
+          type: array
+          items:
+            $ref: '#/components/schemas/PGv2_BalanceWallet_Result'
+          nullable: true
+      required:
+        - EshopOrderGUID
+        - EshopPaymentGUID
+        - Price
+        - MarketplaceName
+        - Currency
+    PGv2_BalancePayment_Result:
+      description: |
+        DTO slouží pro vracení informací o možnostech doplatku objednávky.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1254883345/DTO+PGv2+BalancePayment+Result)
+      type: object
+      properties:
+        EshopOrderGUID:
+          description: |
+            GUID zaregistrované objednávky.
+            Vrací se stejná hodnota, která byla zaslána v žádosti.
+          type: string
+        Price:
+          description: Hodnota platby.
+          type: number
+        PCPaymentPrice:
+          description: 'Doplatek privátní kartou. Pokud null, je doplatek roven 0.'
+          type: number
+        Currency:
+          description: Měna platby.
+          $ref: '#/components/schemas/PGv2_Unit'
+        PCCurrency:
+          description: Měna doplatku privátní kartou. Uvedeno pouze pokud doplatek existuje.
+          $ref: '#/components/schemas/PGv2_Unit'
+        PCPaymentMethods:
+          description: List možností platby doplatku. Uvedeno pouze pokud doplatek existuje.
+          type: array
+          items:
+            $ref: '#/components/schemas/PGv2_BalancePaymentType_Result'
+          nullable: true
+      required:
+        - EshopOrderGUID
+        - Price
+    PGv2_Cancel_Request:
+      description: |
+        DTO slouží pro stornování objednávky/platby.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125744719/DTO+PGv2+Cancel+Request)
+      type: object
+      properties:
+        Description:
+          description: Popis důvodu storna.
+          type: string
+        Price:
+          description: |
+            Hodnota, kterou stornujeme. Pro určení měny se použije měna eshopu.
+            Povinné pouze u částečného storna. Pokud neuvedeno, stornuje se celá částka.
+          type: number
+        IsPartialCancelAllowed:
+          description: |
+            Zda je povoleno částečné storno.
+            Pokud parametr není zaslán, defaultem je false = nepovoleno.
+          type: boolean
+    PGv2_Cancel_Result:
+      description: |
+        DTO slouží pro vracení informací o provedení storna.
+        [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/BP/pages/1125744726/DTO+PGv2+Cancel+Result)
+      type: object
+      properties:
+        CanceledPrice:
+          description: 'Částka, kterou se podařilo stornovat.'
+          type: number
+        IsPartialCancel:
+          description: 'Zda proběhlé strono bylo částečné (true), nebo úplné (false).'
+          type: boolean
+        PaymentResult:
+          description: Informace o rušené objednávce.
+          $ref: '#/components/schemas/PGv2_PaymentResult'
+  responses:
+    PaymentRequired:
+      description: |
+        Vrací tehdy, je-li třeba provést doplatek na platební bráně. 
+        V response hlavičce X-Payment-URL se vrátí odkaz na UI platební brány ČSOB (URL je jedinečné pro tuto konkrétní platbu).
+      headers:
+        X-Payment-URL:
+          schema:
+            type: string
+          description: |
+            Odkaz na UI platební brány ČSOB (URL je jedinečné pro tuto konkrétní platbu).
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Payment-URL)
+    BadRequest:
+      description: Bad request.
+      headers:
+        X_Error_Name:
+          schema:
+            type: string
+          description: |
+            Strojový klíč chyby, nelokalizuje se. Může obsahovat list klíčů, jednotlivé klíče jsou odděleny “;“. 
+            První kód je kód hlavní chyby.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Error-Name)
+        X-Message:
+          schema:
+            type: string
+          description: |
+            Lokalizovný text návratové hlášky, který se zobrazí uživateli. 
+            Používá se i pro zasílání lokalizovaných textů chyb.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Message)
+    NotFound:
+      description: The specified resource was not found.
+      headers:
+        X_Error_Name:
+          schema:
+            type: string
+          description: |
+            Strojový klíč chyby, nelokalizuje se. Může obsahovat list klíčů, jednotlivé klíče jsou odděleny “;“. 
+            První kód je kód hlavní chyby.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Error-Name)
+        X-Message:
+          schema:
+            type: string
+          description: |
+            Lokalizovný text návratové hlášky, který se zobrazí uživateli. 
+            Používá se i pro zasílání lokalizovaných textů chyb.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Message)
+    Unauthorized:
+      description: Unauthorized.
+      headers:
+        X_Error_Name:
+          schema:
+            type: string
+          description: |
+            Strojový klíč chyby, nelokalizuje se. Může obsahovat list klíčů, jednotlivé klíče jsou odděleny “;“. 
+            První kód je kód hlavní chyby.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Error-Name)
+        X-Message:
+          schema:
+            type: string
+          description: |
+            Lokalizovný text návratové hlášky, který se zobrazí uživateli. 
+            Používá se i pro zasílání lokalizovaných textů chyb.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Message)
+    Forbidden:
+      description: The server refuses to fulfill the request.
+      headers:
+        X_Error_Name:
+          schema:
+            type: string
+          description: |
+            Strojový klíč chyby, nelokalizuje se. Může obsahovat list klíčů, jednotlivé klíče jsou odděleny “;“. 
+            První kód je kód hlavní chyby.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Error-Name)
+        X-Message:
+          schema:
+            type: string
+          description: |
+            Lokalizovný text návratové hlášky, který se zobrazí uživateli. 
+            Používá se i pro zasílání lokalizovaných textů chyb.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Message)
+    InternalServerError:
+      description: Indicates that a generic error has occurred on the server.
+      headers:
+        X_Error_Name:
+          schema:
+            type: string
+          description: |
+            Strojový klíč chyby, nelokalizuje se. Může obsahovat list klíčů, jednotlivé klíče jsou odděleny “;“. 
+            První kód je kód hlavní chyby.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Error-Name)
+        X-Message:
+          schema:
+            type: string
+          description: |
+            Lokalizovný text návratové hlášky, který se zobrazí uživateli. 
+            Používá se i pro zasílání lokalizovaných textů chyb.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Message)
+    UnexpectedError:
+      description: Unexpected error.
+      headers:
+        X_Error_Name:
+          schema:
+            type: string
+          description: |
+            Strojový klíč chyby, nelokalizuje se. Může obsahovat list klíčů, jednotlivé klíče jsou odděleny “;“. 
+            První kód je kód hlavní chyby.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Error-Name)
+        X-Message:
+          schema:
+            type: string
+          description: |
+            Lokalizovný text návratové hlášky, který se zobrazí uživateli. 
+            Používá se i pro zasílání lokalizovaných textů chyb.
+            [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-Message)

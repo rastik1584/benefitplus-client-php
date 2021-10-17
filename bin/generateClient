@@ -1,0 +1,6 @@
+#!/bin/bash
+cd deps
+composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+swagger-codegen generate -i ./openapi.yaml -l php --c './client-config.json'
+sed -i '' 's/AnyOfEventData/\\CareCloud\\Model\\AnyOfEventData/g' lib/model/Event.php
+sed -i '' 's/AnyOfPropertyRecordPropertyValue/\\CareCloud\\Model\\AnyOfPropertyRecordPropertyValue/g' lib/model/PropertyRecord.php
