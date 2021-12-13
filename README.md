@@ -20,11 +20,11 @@ To install the bindings via [Composer](http://getcomposer.org/), add the followi
   "repositories": [
     {
       "type": "git",
-      "url": "https://github.com/wpify/benefitplus-client-php.git"
+      "url": "http://github.com/wpify/benefitplus-sdk.git"
     }
   ],
   "require": {
-    "wpify/benefitplus-client-php": "*@dev"
+    "wpify/benefitplus-sdk": "*@dev"
   }
 }
 ```
@@ -97,9 +97,10 @@ $apiInstance = new BenefitPlus\Api\DefaultApi(
 $body = new \BenefitPlus\Model\PGv2EshopOrderRequest(); // \BenefitPlus\Model\PGv2EshopOrderRequest | DTO obsahující informace o registrované objednávce. [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125646362/DTO+PGv2+Eshop+Order+Request)
 $x_api_key = "x_api_key_example"; // string | Jedinečný bezpečnostní klíč eshopu. [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-API-Key)
 $eshop_guid = "38400000-8cf0-11bd-b23e-10b96e4ef00d"; // string | Jedinečný GUID eshopu. [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#{eshopGUID})
+$accept_language = "accept_language_example"; // string | Jedinečný bezpečnostní klíč eshopu. [Online dokumentace je dostupná zde](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1448902683/Platebn+br+na+pro+e-shopy+v2+-+HTTP+hlavi+ky+a+URL+parametry#X-API-Key)
 
 try {
-    $result = $apiInstance->eshopsEshopGUIDEshopordersPost($body, $x_api_key, $eshop_guid);
+    $result = $apiInstance->eshopsEshopGUIDEshopordersPost($body, $x_api_key, $eshop_guid, $accept_language);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling DefaultApi->eshopsEshopGUIDEshopordersPost: ', $e->getMessage(), PHP_EOL;
