@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Benefit Plus payment gate API (version 2)
   description: 'OpenAPI dokumentace k [Platební bráně Benefit Plus v2](https://benefit-kelnero.atlassian.net/wiki/spaces/NPBBP/pages/1125646355/Dokumentace+k+nov+platebn+br+n+pro+e-shopy+v2).'
-  version: 2.1.8
+  version: 2.2.1
 servers:
   - url: 'https://inside.benefit-plus.eu/api_PG/v2'
     description: Main (production) server
@@ -504,6 +504,9 @@ components:
           description: Datum to - poslední den pobytu v hotelu.
           type: string
           format: date-time
+        ShoppingCartID:
+          description: 'ID nákupního košíku, přidělené eshopem.'
+          type: string
       required:
         - OrderID
         - Price
@@ -560,6 +563,9 @@ components:
           description: Datum to - poslední den pobytu v hotelu.
           type: string
           format: date-time
+        ShoppingCartID:
+          description: 'ID nákupního košíku, přidělené eshopem.'
+          type: string
         Currency:
           description: Měna platby.
           $ref: '#/components/schemas/PGv2_Unit'

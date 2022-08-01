@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **created** | [**\DateTime**](\DateTime.md) | Datumočas založení objednávky. | [optional] 
 **date_from** | [**\DateTime**](\DateTime.md) | Datum od - první den pobytu v hotelu. | [optional] 
 **date_to** | [**\DateTime**](\DateTime.md) | Datum to - poslední den pobytu v hotelu. | [optional] 
+**shopping_cart_id** | **string** | ID nákupního košíku, přidělené eshopem. | [optional] 
 **currency** | [**\BenefitPlus\Model\PGv2Unit**](PGv2Unit.md) |  | [optional] 
 **payment_results** | [**\BenefitPlus\Model\PGv2PaymentResult[]**](PGv2PaymentResult.md) | List objektů DTO PGv2_PaymentResult s informacemi o jednotlivých pokusech o platbu. List je seřazen dle času (nejnovější nahoře), tedy top(1) záznam listu obsahuje informace o aktuálním stavu. | [optional] 
 

@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **return_url** | **string** | Návratová URL, na kterou se má vrátit řízení. | [optional] 
 **date_from** | [**\DateTime**](\DateTime.md) | Datum od - první den pobytu v hotelu. | [optional] 
 **date_to** | [**\DateTime**](\DateTime.md) | Datum to - poslední den pobytu v hotelu. | [optional] 
+**shopping_cart_id** | **string** | ID nákupního košíku, přidělené eshopem. | [optional] 
 
 [[Back to Model list]](../../README.md#documentation-for-models) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to README]](../../README.md)
 
